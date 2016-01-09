@@ -290,19 +290,20 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 				request = Route.obtainRoute_Request(context, origen, destino);
 				
 				if(!Common.isCodigoError(request)){
-					
-					runOnUiThread(new Runnable(){
-						public void run(){
-							try {
-								ruta = JsonHelper.buildJSONRoute(request);
-								drawRoute();
-							}
-							catch(JSONException e) {
-								e.printStackTrace();
-							}
-						}
-					});
-    			}
+					try {
+						ruta = JsonHelper.buildJSONRoute(request);
+					}
+					catch(JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				//Se ejecuta en el hilo principal ya que la Interfaz Grafica no puede ser accedida desde hilos secundarios
+				runOnUiThread(new Runnable(){
+					public void run(){
+						drawRoute();
+					}
+				});
 			}
 		}.start();
 		

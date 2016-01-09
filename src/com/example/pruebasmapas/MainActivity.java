@@ -1,25 +1,34 @@
 package com.example.pruebasmapas;
 
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.maps.model.MarkerOptions;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONException;
+
+import com.example.pruebamapas.helpers.Common;
+import com.example.pruebamapas.helpers.JsonHelper;
+import com.example.pruebamapas.helpers.SphericalUtil;
+import com.example.pruebamapas.httprequest.Route;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import android.support.v4.app.FragmentActivity;
-import com.google.maps.android.SphericalUtil;
-import com.google.android.gms.maps.GoogleMap;
-import java.text.DecimalFormat;
-import android.widget.EditText;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import android.content.Context;
 import android.graphics.Color;
-import android.widget.Button;
-import java.util.ArrayList;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.View;
-import java.util.List;
+import android.widget.Button;
+import android.widget.EditText;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener,OnMapReadyCallback {
 
@@ -31,8 +40,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private Button btnInterior;
     private EditText edTextCalcDistance;
     
-    private List<Marker> listMaker = new ArrayList<>(); 
-    private Polyline poliLinea ;
+    private List<Marker> listMaker = new ArrayList<>();
+    private List<LatLng> ruta;
+    private Polyline poliLinea;
+    
+    private Context context;
+    private String request;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +65,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         btnMapSatelite.setOnClickListener(this);
         btnInterior.setOnClickListener(this);
 
+        context = this;
+        
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -70,11 +85,17 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        
+        CameraPosition cp = CameraPosition.builder()
+        		.target(new LatLng(39.201218, -0.307095))
+        		.zoom(10)
+        		.bearing(0)
+        		.tilt(0)
+        		.build();
+        
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cp));
+        /*mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(39.201218, -0.307095), 10));*/
 
         //Cuando hacemos un click largo sobre un punto del mapa se añade un marcador en el mismo
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
@@ -163,9 +184,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 	                poliLinea.remove();
 	                
 	                if(pos1.equals(posicion)){
-	                	setLinea(pos2,posicion);
+	                	//setLinea(pos2,posicion);
+	                	setRoute(pos2,posicion);
 	                }else{
-	                	setLinea(pos1,posicion);
+	                	setRoute(pos1,posicion);
+	                	//setLinea(pos1,posicion);
 	                }
 	                
 	                calcularDistancia();
@@ -183,6 +206,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         switch (v.getId()){
             case R.id.btnMapNormal :
                 mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                Route.obtainRoute_Request(this, new LatLng(39.203835, -0.310152),new LatLng(39.496775, -0.514754));
                 break;
             case R.id.btnMapTerreno :
                 mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
@@ -195,8 +219,31 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 break;
             case R.id.btnInterior :
                 // Algunos edificios tienen mapa de interior. Hay que ponerse sobre ellos y directamente veremos las plantas
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(-33.86997, 151.2089), 18));
+                /*mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(-33.86997, 151.2089), 18));*/
+            	
+//            	new Thread(){
+//					public void run(){
+//						
+//						request = Route.obtainRoute_Request(context, new LatLng(39.203835, -0.310152),new LatLng(39.496775, -0.514754));
+//						
+//						if(!Common.isCodigoError(request)){
+//							
+//							runOnUiThread(new Runnable(){
+//								public void run(){
+//									try {
+//										ruta = JsonHelper.buildJSONRoute(request);
+//										drawRoute();
+//									}
+//									catch(JSONException e) {
+//										e.printStackTrace();
+//									}
+//								}
+//							});
+//		    			}
+//					}
+//    			}.start();
+    			
                 break;
 
         }
@@ -234,5 +281,67 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         poliLinea.setClickable(true);
 
     }
+    
+    public void setRoute(final LatLng origen, final LatLng destino){
+    	
+    	new Thread(){
+			public void run(){
+				
+				request = Route.obtainRoute_Request(context, origen, destino);
+				
+				if(!Common.isCodigoError(request)){
+					
+					runOnUiThread(new Runnable(){
+						public void run(){
+							try {
+								ruta = JsonHelper.buildJSONRoute(request);
+								drawRoute();
+							}
+							catch(JSONException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+    			}
+			}
+		}.start();
+		
+    }
+    
+    private void drawRoute(){
+    	
+    	PolylineOptions po;
+		
+		//if(poliLinea == null){
+			po = new PolylineOptions();
+			
+			for(int i = 0, tam = ruta.size(); i < tam; i++){
+				po.add(ruta.get(i));
+			}
+		
+			po.color(Color.BLACK).width(4);
+			poliLinea = mMap.addPolyline(po);
+			
+		//}else{
+			//poliLinea.setPoints(ruta);
+		//}
+    	
+//		PolylineOptions po;
+//		
+//		if(poliLinea == null){
+//			po = new PolylineOptions();
+//			
+//			for(int i = 0, tam = ruta.size(); i < tam; i++){
+//				po.add(ruta.get(i));
+//			}
+//		
+//			po.color(Color.BLACK).width(4);
+//			poliLinea = mMap.addPolyline(po);
+//			
+//		}else{
+//			poliLinea.setPoints(ruta);
+//		}
+		
+	}
 
 }

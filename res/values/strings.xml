@@ -4,5 +4,12 @@
     <string name="app_name">PruebasMapas</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    
+    <!-- Custom Errors -->
+    <string name="customError_ConnectionError">Connection Error</string>
+    <string name="customError_DeviceDisconnected">Device Disconnected Error</string>
+    <string name="customError_InvalidParameters">Invalid Parameters Error</string>
+    <string name="customError_ErrorUnknown">Unknown Error</string>
+    <string name="error_default">Default Error</string>
 
 </resources>

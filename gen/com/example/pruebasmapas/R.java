@@ -778,7 +778,14 @@ containing a value of this type.
         public static final int common_signin_button_text_long=0x7f060023;
         public static final int create_calendar_message=0x7f060005;
         public static final int create_calendar_title=0x7f060004;
+        /**  Custom Errors 
+         */
+        public static final int customError_ConnectionError=0x7f06002e;
+        public static final int customError_DeviceDisconnected=0x7f06002f;
+        public static final int customError_ErrorUnknown=0x7f060031;
+        public static final int customError_InvalidParameters=0x7f060030;
         public static final int decline=0x7f060003;
+        public static final int error_default=0x7f060032;
         public static final int hello_world=0x7f06002c;
         /**  Description of the button that clears the search input when searching for places. 
          */

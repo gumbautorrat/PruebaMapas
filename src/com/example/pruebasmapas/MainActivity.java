@@ -29,6 +29,10 @@ import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import static com.example.pruebamapas.helpers.MapsHelper.MODE_DRIVING;
+import static com.example.pruebamapas.helpers.MapsHelper.MODE_BICYCLING;
+import static com.example.pruebamapas.helpers.MapsHelper.MODE_WALKING;
+import static com.example.pruebamapas.helpers.MapsHelper.MODE_TRANSIT;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener,OnMapReadyCallback {
 
@@ -287,7 +291,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     	new Thread(){
 			public void run(){
 				
-				request = Route.obtainRoute_Request(context, origen, destino);
+				//request = Route.obtainRoute_Request(context, origen, destino);
+				request = Route.obtainRoute_Request(context, origen, destino,MODE_WALKING);
 				
 				if(!Common.isCodigoError(request)){
 					try {
